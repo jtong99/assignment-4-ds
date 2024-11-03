@@ -1,0 +1,25 @@
+
+### Description of Content_Test Class
+
+1. **testParseFile**:
+   - This test method checks the functionality of the `parseFile` method in the `Content` class.
+    It creates a temporary text file containing an ID and a name, then calls `parseFile` to read and parse this data.
+    Assertions are made to ensure the method returns the expected values for "id" and "name".
+    The temporary file is deleted after the test.
+
+2. **testConvertMapToJson**:
+   - This method tests the `convertMapToJson` method, which converts a `Map` of strings to a JSON string.
+     It prepares a sample map with an ID and name, converts it to JSON, and asserts that the output matches the expected JSON format.
+
+3. **testCreatePutRequest**:
+   - This test validates the `createPutRequest` method, which constructs a PUT request in the HTTP format.
+    It prepares a sample JSON string and checks that the generated request contains the correct HTTP method, headers, and body content.
+
+4. **testSendPutRequest**:
+   - This method tests the `sendPutRequest` method.
+    It uses mocking to simulate socket communication, ensuring that a PUT request is sent correctly and the response updates the Lamport clock.
+    It verifies the interaction with the mocked output stream and checks that the Lamport clock is updated as expected.
+
+5. **testExtractLamportClock**:
+   - This test checks the `extractLamportClock` method, which extracts the Lamport clock value from a server response string.
+     It simulates a server response and asserts that the extracted Lamport clock matches the expected value.

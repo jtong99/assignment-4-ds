@@ -1,0 +1,48 @@
+
+# Project Running Instructions
+
+## Requirements
+- **Java 8 or higher** must be installed on your system.
+- A running server that can handle HTTP GET and PUT requests.
+
+---
+
+## How to Run the Project
+
+Navigate to the directory where the `GETClient.java` and `Content.java` 'AggregationServer.java'files are located.
+
+Run the following commands to compile both Java files:
+
+Terminal-1(First run the server as client and content will try to connect when they startup)
+
+javac AggregationServer.java
+java  AggregationServer.java 8080(any port number)
+
+
+
+Terminal -2(Content.java)
+javac Content.java
+java Content localhost:8080   data/input.txt
+
+Provide input file in data folder
+
+
+
+
+Terminal -3 (GETCient.java)
+javac GETClient.java
+java  GETClient  localhost:8080
+
+
+
+
+
+The Test files and corresponding description files have been added too
+
+data/ folder contains the input files and also stores the weather data
+
+
+
+
+
+

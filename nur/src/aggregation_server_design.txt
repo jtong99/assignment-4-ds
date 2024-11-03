@@ -1,0 +1,35 @@
+Overview
+The AggregationServer acts as a server that accepts incoming client requests for weather data, stores this data, and manages client sessions. It utilizes a multi-threaded approach to allow simultaneous connections, ensuring that multiple clients can interact with the server without blocking each other.
+
+Key Components
+
+1. Server Setup:
+   - The server listens for incoming client connections on a specified port (default is 6666).
+   - It loads existing weather data from the latest JSON file in the data directory upon startup.
+
+2. Data Structures:
+   - idMap: A map that associates each client socket with a unique UUID to identify clients.
+   - weatherData: A list that stores the weather data received from clients.
+   - serverTime: A concurrent map that keeps track of the last interaction timestamp for each client.
+   - fileMap: Maps each client socket to the associated file, allowing for cleanup when clients disconnect or timeout.
+   - fileLock: A ReentrantLock used to synchronize access to file operations, ensuring thread safety when writing data to files.
+
+3. Client Management:
+   - A dedicated thread (cleanupThread) is created to periodically remove inactive clients based on a timeout of 30 seconds. This helps manage resources effectively by deleting stale client connections and associated files.
+
+4. Client Handling:
+   - For each client connection, a new thread is spawned to handle incoming requests. This approach allows the server to manage multiple clients concurrently.
+   - The handleClient method processes client messages, supporting both GET and PUT requests:
+     - GET: Retrieves the latest weather data from the server and sends it back to the client.
+     - PUT: Accepts new weather data in JSON format, validates it, stores it, and responds with appropriate status codes.
+   - The server maintains a Lamport clock to ensure proper ordering of messages in a distributed system, incrementing it with each valid request.
+
+5. Data Storage:
+   - Incoming weather data from clients is stored in JSON files within the data directory. Each file is uniquely named using a combination of the client's UUID and the current timestamp to prevent overwriting.
+   - The server validates the JSON format of incoming data and checks for the presence of the "Lamport-Clock" to ensure synchronization.
+
+6. Error Handling:
+   - The server gracefully handles various exceptions, such as EOFException for unexpected client disconnections and IOException for issues during file operations.
+   - Responses to clients are formatted in a standard HTTP response format, including relevant status codes and messages for various conditions (e.g., 200 OK, 400 Bad Request).
+
+

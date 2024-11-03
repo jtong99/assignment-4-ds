@@ -1,0 +1,34 @@
+Description of GETClient_Test
+
+The GETClient_Test class is a JUnit test suite designed to validate the functionality of the GETClient class. The tests cover various scenarios including processing valid and invalid server responses, parsing server URLs, creating GET requests, and extracting Lamport clock values from responses.
+
+Test Methods:
+
+	1.	testProcessResponseValidJson:
+		Tests the processResponse method using a valid JSON response and a 404 error response.
+		Validates that the output for the valid JSON response matches the expected values.
+		Checks that the method correctly handles a 404 response.
+
+	2.	testParseServerUrlWithPort:
+		Tests the parseServerUrl method with a complete URL including a port.
+		Asserts that the host and port are correctly extracted.
+
+	3.	testParseServerUrlWithoutPort:
+		Tests the parseServerUrl method without a port, which should default to a specified value.
+		Asserts that the default port is used when none is provided.
+
+	4.	testCreateGetRequest:
+		Tests the createGetRequest method to ensure it constructs a properly formatted GET request string.
+		Validates that the request includes the correct host, port, and Lamport clock.
+
+	5.	testExtractLamportClockValid:
+    	Tests the extractLamportClock method with a valid Lamport clock value.
+		Asserts that the Lamport clock is extracted correctly and handles a case with an invalid clock.
+
+	6.	testExtractLamportClockInvalid:
+		Tests the extraction of an invalid Lamport clock (non-numeric).
+		Asserts that the method returns -1 for invalid clock values.
+
+	7.	testExtractLamportClockNotFound:
+		Tests the extractLamportClock method when the Lamport clock header is missing.
+		Asserts that the method returns -1 when the clock header is not found.

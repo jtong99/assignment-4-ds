@@ -1,0 +1,63 @@
+
+# Aggregation_Test Class Documentation
+
+This document describes the various test cases implemented in the Aggregation_Test class. The class is designed to test the functionalities of the AggregationServer for handling weather data requests, storing, and processing JSON data.
+
+## Test Cases
+
+1. **setUp()**: 
+   - Initializes the server in a separate thread before all tests.
+   - Waits for 1 second to ensure the server is up and running.
+
+2. **testLoadWeatherDataFromLatestFile()**:
+   - Tests loading weather data from the latest JSON file in the `test_data` directory.
+   - Creates three sample JSON files, ensuring the last one has the latest timestamp.
+   - Asserts that the weather data list contains the content of the latest file.
+
+3. **testGetRequestNoData()**:
+   - Tests the server's response when no data exists for a GET request.
+   - Asserts that the server responds with a 404 error and a "No data" message.
+
+4. **testClientRetry()**:
+   - A placeholder test for client retry mechanism
+
+5. **testInvalidRequest()**:
+   - Tests the server's response to an invalid HTTP request (DELETE).
+   - Asserts that the server responds with a 400 Bad Request message.
+
+6. **testGetRequestWithData()**:
+   - Tests the retrieval of data from the server after simulating a PUT request to add data.
+   - Asserts that the response contains the correct weather data and an HTTP 200 OK status.
+
+7. **testClientConnection()**:
+   - Tests if the client can connect to the server and receive a valid response.
+   - Asserts that the response contains a valid HTTP status (either 200 or 404).
+
+8. **testProcessDataValid()**:
+   - Tests the processing of valid JSON data to ensure it is correctly parsed.
+   - Asserts that the expected JSON is returned.
+
+9. **testCorruptedData()**:
+   - Tests the scenario where corrupted JSON is sent to the server.
+   - Asserts that the server responds with a 500 Internal Server Error.
+
+10. **testStoreData()**:
+    - Tests if the data is stored correctly in the server.
+    - Asserts that the response code from storing the data is as expected.
+
+11. **testValidLamportClock()**:
+    - Tests the extraction of a valid Lamport clock value from an HTTP response.
+    - Asserts that the correct Lamport clock value is returned.
+
+12. **testInvalidLamportClockValue()**:
+    - Tests the behavior when the Lamport clock header has an invalid value.
+    - Asserts that -1 is returned for invalid clock values.
+
+13. **testStoreClientUpdateTime()**:
+    - Tests the functionality to store the update time for a client socket.
+    - Asserts that the return value indicates a successful operation.
+
+14. **testRemoveInactiveClients()**:
+    - Tests the logic for removing inactive clients that have not sent data for over 30 seconds.
+    - Asserts that the removal operation is successful and the appropriate flag is set.
+
