@@ -113,30 +113,6 @@ public class DistributedSystemTesterNiranjen {
             return false;
         }
     }
-    private static Integer extractLamportClock(Process process) throws IOException {
-        // Read both standard output and error streams
-        try (BufferedReader stdOut = new BufferedReader(new InputStreamReader(process.getInputStream()));
-             BufferedReader stdErr = new BufferedReader(new InputStreamReader(process.getErrorStream()))) {
-            
-            String line;
-            // Check standard output
-            while ((line = stdOut.readLine()) != null) {
-                if (line.contains("Lamport-Time:")) {
-                    return Integer.parseInt(line.split("Lamport-Time:")[1].trim());
-                }
-                if (line.contains("Lamport clock after PUT request:")) {
-                    return Integer.parseInt(line.split("Lamport clock after PUT request:")[1].trim());
-                }
-            }
-            
-            // Check error output
-            while ((line = stdErr.readLine()) != null) {
-                System.err.println("Error stream: " + line);
-            }
-            
-            return null;
-        }
-    }
 
     private static void waitForPort(int port, int timeoutMillis) throws Exception {
         long startTime = System.currentTimeMillis();
@@ -286,55 +262,6 @@ public class DistributedSystemTesterNiranjen {
         return result;
     }
 
-    private static boolean verifyPutLamportClocks(String directory, int port) throws Exception {
-        // Create two PUT requests and verify their Lamport clock values
-        Socket socket1 = new Socket("localhost", port);
-        Socket socket2 = new Socket("localhost", port);
-        
-        // Send first PUT
-        PrintWriter out1 = new PrintWriter(socket1.getOutputStream(), true);
-        out1.println("PUT /weather.json HTTP/1.1");
-        out1.println("Content-Type: application/json");
-        out1.println("Lamport-Clock: 1");
-        out1.println();
-        out1.println("{\"test\":\"data1\"}");
-        
-        // Send second PUT
-        PrintWriter out2 = new PrintWriter(socket2.getOutputStream(), true);
-        out2.println("PUT /weather.json HTTP/1.1");
-        out2.println("Content-Type: application/json");
-        out2.println("Lamport-Clock: 2");
-        out2.println();
-        out2.println("{\"test\":\"data2\"}");
-        
-        // Read responses and verify clock values
-        BufferedReader in1 = new BufferedReader(new InputStreamReader(socket1.getInputStream()));
-        BufferedReader in2 = new BufferedReader(new InputStreamReader(socket2.getInputStream()));
-        
-        Integer clock1 = null;
-        Integer clock2 = null;
-        
-        String line;
-        while ((line = in1.readLine()) != null) {
-            if (line.contains("Lamport-Time:") || line.contains("Lamport clock after PUT request:")) {
-                clock1 = Integer.parseInt(line.split(":")[1].trim());
-                break;
-            }
-        }
-        
-        while ((line = in2.readLine()) != null) {
-            if (line.contains("Lamport-Time:") || line.contains("Lamport clock after PUT request:")) {
-                clock2 = Integer.parseInt(line.split(":")[1].trim());
-                break;
-            }
-        }
-        
-        socket1.close();
-        socket2.close();
-        
-        return clock1 != null && clock2 != null && clock2 > clock1;
-    }
-    
     private static TestResult testLamportClocks(Implementation impl) {
         TestResult result = new TestResult(impl.name());
         String directory = impl.getDirectory();
@@ -421,38 +348,6 @@ public class DistributedSystemTesterNiranjen {
         }
     }
 
-    private static void logSocketCommunication(String message, String content) {
-        System.out.println("=== " + message + " ===");
-        System.out.println(content);
-        System.out.println("==================");
-    }
-
-    // Helper method to read process output streams
-    private static void drainProcessOutput(Process process) {
-        new Thread(() -> {
-            try (BufferedReader reader = new BufferedReader(
-                    new InputStreamReader(process.getInputStream()))) {
-                String line;
-                while ((line = reader.readLine()) != null) {
-                    System.out.println("Process output: " + line);
-                }
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }).start();
-
-        new Thread(() -> {
-            try (BufferedReader reader = new BufferedReader(
-                    new InputStreamReader(process.getErrorStream()))) {
-                String line;
-                while ((line = reader.readLine()) != null) {
-                    System.err.println("Process error: " + line);
-                }
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }).start();
-    }
     // Helper methods
     private static boolean sendGetRequest(String directory, int port) throws Exception {
         ProcessBuilder pb = new ProcessBuilder("java", "-cp", "src", "GETClient",

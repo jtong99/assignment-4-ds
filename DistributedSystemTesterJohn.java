@@ -113,30 +113,6 @@ public class DistributedSystemTesterJohn {
             return false;
         }
     }
-    private static Integer extractLamportClock(Process process) throws IOException {
-        // Read both standard output and error streams
-        try (BufferedReader stdOut = new BufferedReader(new InputStreamReader(process.getInputStream()));
-             BufferedReader stdErr = new BufferedReader(new InputStreamReader(process.getErrorStream()))) {
-            
-            String line;
-            // Check standard output
-            while ((line = stdOut.readLine()) != null) {
-                if (line.contains("Lamport-Time:")) {
-                    return Integer.parseInt(line.split("Lamport-Time:")[1].trim());
-                }
-                if (line.contains("Lamport clock after PUT request:")) {
-                    return Integer.parseInt(line.split("Lamport clock after PUT request:")[1].trim());
-                }
-            }
-            
-            // Check error output
-            while ((line = stdErr.readLine()) != null) {
-                System.err.println("Error stream: " + line);
-            }
-            
-            return null;
-        }
-    }
 
     private static void waitForPort(int port, int timeoutMillis) throws Exception {
         long startTime = System.currentTimeMillis();
@@ -288,80 +264,6 @@ public class DistributedSystemTesterJohn {
         
         return result;
     }
-
-    private static boolean verifyPutLamportClocks(String directory, int port) throws Exception {
-        // Create two PUT requests and verify their Lamport clock values
-        Socket socket1 = new Socket("localhost", port);
-        Socket socket2 = new Socket("localhost", port);
-        
-        // Send first PUT
-        PrintWriter out1 = new PrintWriter(socket1.getOutputStream(), true);
-        out1.println("PUT /weather.json HTTP/1.1");
-        out1.println("Content-Type: application/json");
-        out1.println("Lamport-Clock: 1");
-        out1.println();
-        out1.println("{\"test\":\"data1\"}");
-        
-        // Send second PUT
-        PrintWriter out2 = new PrintWriter(socket2.getOutputStream(), true);
-        out2.println("PUT /weather.json HTTP/1.1");
-        out2.println("Content-Type: application/json");
-        out2.println("Lamport-Clock: 2");
-        out2.println();
-        out2.println("{\"test\":\"data2\"}");
-        
-        // Read responses and verify clock values
-        BufferedReader in1 = new BufferedReader(new InputStreamReader(socket1.getInputStream()));
-        BufferedReader in2 = new BufferedReader(new InputStreamReader(socket2.getInputStream()));
-        
-        Integer clock1 = null;
-        Integer clock2 = null;
-        
-        String line;
-        while ((line = in1.readLine()) != null) {
-            if (line.contains("Lamport-Time:") || line.contains("Lamport clock after PUT request:")) {
-                clock1 = Integer.parseInt(line.split(":")[1].trim());
-                break;
-            }
-        }
-        
-        while ((line = in2.readLine()) != null) {
-            if (line.contains("Lamport-Time:") || line.contains("Lamport clock after PUT request:")) {
-                clock2 = Integer.parseInt(line.split(":")[1].trim());
-                break;
-            }
-        }
-        
-        socket1.close();
-        socket2.close();
-        
-        return clock1 != null && clock2 != null && clock2 > clock1;
-    }
-    private static void createTestDataFile(String directory, String filename) throws IOException {
-        String testData = 
-            "id:IDS60901\n" +
-            "name:Adelaide (West Terrace / ngayirdapira)\n" +
-            "state:SA\n" +
-            "time_zone:CST\n" +
-            "lat:-34.9\n" +
-            "lon:138.6\n" +
-            "local_date_time:15/04:00pm\n" +
-            "local_date_time_full:20230715160000\n" +
-            "air_temp:13.3\n" +
-            "apparent_t:9.5\n" +
-            "cloud:Partly cloudy\n" +
-            "dewpt:5.7\n" +
-            "press:1023.9\n" +
-            "rel_hum:60\n" +
-            "wind_dir:S\n" +
-            "wind_spd_kmh:15\n" +
-            "wind_spd_kt:8";
-        
-        Path filePath = Paths.get(directory, "src", filename);
-        Files.write(filePath, testData.getBytes());
-        System.out.println("Created test data file at: " + filePath);
-    }
-    
     private static TestResult testLamportClocks(Implementation impl) {
         TestResult result = new TestResult(impl.name());
         String directory = impl.getDirectory();
@@ -494,52 +396,7 @@ public class DistributedSystemTesterJohn {
         return process.waitFor(5, TimeUnit.SECONDS);
     }
 
-    private static Integer extractLamportClockFromServer(String directory, int port) {
-        try {
-            // Create socket connection directly
-            Socket socket = new Socket("localhost", port);
-            PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
-            BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-
-            // Send GET request with headers
-            out.println("GET /weather.json HTTP/1.1");
-            out.println("Host: localhost:" + port);
-            out.println("User-Agent: AggregationClient/1.0");
-            out.println("Accept: application/json");
-            out.println("Lamport-Clock: 0"); // Send initial clock
-            out.println(); // Empty line to end headers
-            
-            // Read response and look for Lamport clock in headers or content
-            String line;
-            Integer clockValue = null;
-            while ((line = in.readLine()) != null) {
-                // Try to find Lamport clock in different formats
-                if (line.contains("Lamport-Time:")) {
-                    clockValue = Integer.parseInt(line.split("Lamport-Time:")[1].trim());
-                    break;
-                }
-                if (line.contains("Lamport-Clock:")) {
-                    clockValue = Integer.parseInt(line.split("Lamport-Clock:")[1].trim());
-                    break;
-                }
-                if (line.contains("lamport-time:")) {
-                    clockValue = Integer.parseInt(line.split("lamport-time:")[1].trim());
-                    break;
-                }
-            }
-            
-            socket.close();
-            return clockValue;
-            
-        } catch (Exception e) {
-            System.err.println("Error extracting Lamport clock: " + e.getMessage());
-            return null;
-        }
-    }
     
-    private static Future<Integer> sendAsyncGetRequest(String directory, int port) {
-        return testExecutor.submit(() -> extractLamportClockFromServer(directory, port));
-    }
     
     private static boolean verifyDataRecovery(String directory, int port) {
         try {
